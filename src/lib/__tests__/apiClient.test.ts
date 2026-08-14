@@ -15,14 +15,20 @@ describe("apiFetch", () => {
 
   beforeEach(() => {
     // window.location.href assignment isn't implemented in jsdom navigation - stub it out.
-    // @ts-expect-error - deliberately replacing location for the redirect assertion below
-    delete window.location;
-    window.location = { ...originalLocation, href: "" } as Location;
+    // Object.defineProperty sidesteps the Location setter's strict "string" type,
+    // which a plain `window.location = ...` assignment can't satisfy.
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, href: "" },
+    });
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    window.location = originalLocation;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
     vi.restoreAllMocks();
   });
 
